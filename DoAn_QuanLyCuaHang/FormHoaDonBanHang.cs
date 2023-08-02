@@ -94,7 +94,39 @@ namespace DoAn_QuanLyCuaHang
 
         private void dataGridView1_Click(object sender, EventArgs e)
         {
-
+            string MaHangxoa, sql;
+            Double ThanhTienxoa, SoLuongxoa, sl, slcon, tong, tongmoi;
+            if (tblHoaDonBanHang.Rows.Count == 0)
+            {
+                MessageBox.Show("Không có dữ liệu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            if ((MessageBox.Show("Bạn có chắc chắn muốn xóa không?", "Thông báo", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes))
+            {
+                MaHangxoa = dataGridView1.CurrentRow.Cells["MaHang"].Value.ToString();
+                SoLuongxoa = Convert.ToDouble(dataGridView1.CurrentRow.Cells["SoLuong"].Value.ToString());
+                ThanhTienxoa = Convert.ToDouble(dataGridView1.CurrentRow.Cells["ThangTien"].Value.ToString());
+                sql = "DELETE tblChiTietHDBan WHERE MaHDBan=N'" + textMaHD.Text + "' AND MaHang = N'" + MaHangxoa + "'";
+                QuanLyBanHang.runSQL(sql);
+                // Cập nhật lại số lượng cho các mặt hàng
+                sl = Convert.ToDouble(QuanLyBanHang.getValues("SELECT SoLuong FROM tblHang WHERE MaHang = N'" + MaHangxoa + "'"));
+                slcon = sl + SoLuongxoa;
+                sql = "UPDATE tblHang SET SoLuong =" + slcon + " WHERE MaHang= N'" + MaHangxoa + "'";
+                QuanLyBanHang.runSQL(sql);
+                // Cập nhật lại tổng tiền cho hóa đơn bán
+                tong = Convert.ToDouble(QuanLyBanHang.getValues("SELECT TongTien FROM tblHDBan WHERE MaHDBan = N'" + textMaHD.Text + "'"));
+                tongmoi = tong - ThanhTienxoa;
+                sql = "UPDATE tblHDBan SET TongTien =" + tongmoi + " WHERE MaHDBan = N'" + textMaHD.Text + "'";
+                QuanLyBanHang.runSQL(sql);
+                if(tongmoi ==0)
+                {
+                    sql = "DELETE tblHDBan WHERE MaHDBan = N'" + textMaHD.Text + "'";
+                    QuanLyBanHang.runSQL(sql);
+                }
+                textTongTien.Text = tongmoi.ToString();
+                laChu.Text = "Bằng chữ: " + QuanLyBanHang.NumberToText(tongmoi);
+                loadDatagirdView();
+            }
         }
         private void reset()
         {
@@ -309,6 +341,145 @@ namespace DoAn_QuanLyCuaHang
             loadInfoHang();
             loadDatagirdView();
             comboBoxTimKiem.SelectedItem = -1;
+            btInHD.Enabled = true;
+            btHuyHD.Enabled = true;
+        }
+
+        private void btInHD_Click(object sender, EventArgs e)
+        {
+            COMExcel.Application exApp = new COMExcel.Application();
+            COMExcel.Workbook wb ;
+            COMExcel.Worksheet ws ;
+            COMExcel.Range exRange;
+            string sql;
+            DataTable tblHoaDon, tblHang;
+            int hang = 0, cot = 0;
+            wb = exApp.Workbooks.Add(COMExcel.XlWBATemplate.xlWBATWorksheet);
+            ws = wb.Worksheets[1];
+            exRange = ws.Cells[1, 1];
+            exRange.Range["A1:Z300"].Font.Name = "Times new roman"; //Font chữ
+            exRange.Range["A1:B3"].Font.Size = 10;
+            exRange.Range["A1:B3"].Font.Bold = true;
+            exRange.Range["A1:B3"].Font.ColorIndex = 5; //Màu xanh da trời
+            exRange.Range["A1:A1"].ColumnWidth = 7;
+            exRange.Range["B1:B1"].ColumnWidth = 15;
+            exRange.Range["A1:B1"].MergeCells = true;
+            exRange.Range["A1:B1"].HorizontalAlignment = COMExcel.XlHAlign.xlHAlignCenter;
+            exRange.Range["A1:B1"].Value = "Shop B.A.";
+            exRange.Range["A2:B2"].MergeCells = true;
+            exRange.Range["A2:B2"].HorizontalAlignment = COMExcel.XlHAlign.xlHAlignCenter;
+            exRange.Range["A2:B2"].Value = "Chùa Bộc - Hà Nội";
+            exRange.Range["A3:B3"].MergeCells = true;
+            exRange.Range["A3:B3"].HorizontalAlignment = COMExcel.XlHAlign.xlHAlignCenter;
+            exRange.Range["A3:B3"].Value = "Điện thoại: (04)38526419";
+            exRange.Range["C2:E2"].Font.Size = 16;
+            exRange.Range["C2:E2"].Font.Bold = true;
+            exRange.Range["C2:E2"].Font.ColorIndex = 3; //Màu đỏ
+            exRange.Range["C2:E2"].MergeCells = true;
+            exRange.Range["C2:E2"].HorizontalAlignment = COMExcel.XlHAlign.xlHAlignCenter;
+            exRange.Range["C2:E2"].Value = "HÓA ĐƠN BÁN";
+            sql = "SELECT a.MaHDBan, a.NgayBan, a.TongTien, b.TenKhach," +
+                " b.DiaChi, b.DienThoai, c.TenNhanVien FROM tblHDBan AS a," +
+                " tblKhach AS b, tblNhanVien AS c WHERE a.MaHDBan = N'" + textMaHD.Text +
+                "' AND a.MaKhach = b.MaKhach AND a.MaNhanVien = c.MaNhanVien";
+            tblHoaDon = QuanLyBanHang.getDatatable(sql);
+            exRange.Range["B6:C9"].Font.Size = 12;
+            exRange.Range["B6:B6"].Value = "Mã hóa đơn:";
+            exRange.Range["C6:E6"].MergeCells = true;
+            exRange.Range["C6:E6"].Value = tblHoaDon.Rows[0][0].ToString();
+            exRange.Range["B7:B7"].Value = "Khách hàng:";
+            exRange.Range["C7:E7"].MergeCells = true;
+            exRange.Range["C7:E7"].Value = tblHoaDon.Rows[0][3].ToString();
+            exRange.Range["B8:B8"].Value = "Địa chỉ:";
+            exRange.Range["C8:E8"].MergeCells = true;
+            exRange.Range["C8:E8"].Value = tblHoaDon.Rows[0][4].ToString();
+            exRange.Range["B9:B9"].Value = "Điện thoại:";
+            exRange.Range["C9:E9"].MergeCells = true;
+            exRange.Range["C9:E9"].Value = tblHoaDon.Rows[0][5].ToString();
+            //Lấy thông tin các mặt hàng
+            sql = "SELECT b.TenHang, a.SoLuong, b.DonGiaBan, a.GiamGia, a.ThangTien " +
+                  "FROM tblChiTietHDBan AS a , tblHang AS b WHERE a.MaHDBan = N'" +
+                  textMaHD.Text + "' AND a.MaHang = b.MaHang";
+            tblHang = QuanLyBanHang.getDatatable(sql);
+            //Tạo dòng tiêu đề bảng
+            exRange.Range["A11:F11"].Font.Bold = true;
+            exRange.Range["A11:F11"].HorizontalAlignment = COMExcel.XlHAlign.xlHAlignCenter;
+            exRange.Range["C11:F11"].ColumnWidth = 12;
+            exRange.Range["A11:A11"].Value = "STT";
+            exRange.Range["B11:B11"].Value = "Tên hàng";
+            exRange.Range["C11:C11"].Value = "Số lượng";
+            exRange.Range["D11:D11"].Value = "Đơn giá";
+            exRange.Range["E11:E11"].Value = "Giảm giá";
+            exRange.Range["F11:F11"].Value = "Thành tiền";
+            for (hang = 0; hang < tblHang.Rows.Count; hang++)
+            {
+                //Điền số thứ tự vào cột 1 từ dòng 12
+                ws.Cells[1][hang + 12] = hang + 1;
+                for (cot = 0; cot < tblHang.Columns.Count; cot++)
+                //Điền thông tin hàng từ cột thứ 2, dòng 12
+                {
+                    ws.Cells[cot + 2][hang + 12] = tblHang.Rows[hang][cot].ToString();
+                    if (cot == 3) ws.Cells[cot + 2][hang + 12] = tblHang.Rows[hang][cot].ToString() + "%";
+                }
+            }
+            exRange = ws.Cells[cot][hang + 14];
+            exRange.Font.Bold = true;
+            exRange.Value2 = "Tổng tiền:";
+            exRange = ws.Cells[cot + 1][hang + 14];
+            exRange.Font.Bold = true;
+            exRange.Value2 = tblHoaDon.Rows[0][2].ToString();
+            exRange = ws.Cells[1][hang + 15]; //Ô A1 
+            exRange.Range["A1:F1"].MergeCells = true;
+            exRange.Range["A1:F1"].Font.Bold = true;
+            exRange.Range["A1:F1"].Font.Italic = true;
+            exRange.Range["A1:F1"].HorizontalAlignment = COMExcel.XlHAlign.xlHAlignRight;
+            exRange.Range["A1:F1"].Value = "Bằng chữ: " + QuanLyBanHang.NumberToText(Convert.ToDouble(tblHoaDon.Rows[0][2].ToString()));
+            exRange = ws.Cells[4][hang + 17]; //Ô A1 
+            exRange.Range["A1:C1"].MergeCells = true;
+            exRange.Range["A1:C1"].Font.Italic = true;
+            exRange.Range["A1:C1"].HorizontalAlignment = COMExcel.XlHAlign.xlHAlignCenter;
+            DateTime d = Convert.ToDateTime(tblHoaDon.Rows[0][1]);
+            exRange.Range["A1:C1"].Value = "Hà Nội, ngày " + d.Day + " tháng " + d.Month + " năm " + d.Year;
+            exRange.Range["A2:C2"].MergeCells = true;
+            exRange.Range["A2:C2"].Font.Italic = true;
+            exRange.Range["A2:C2"].HorizontalAlignment = COMExcel.XlHAlign.xlHAlignCenter;
+            exRange.Range["A2:C2"].Value = "Nhân viên bán hàng";
+            exRange.Range["A6:C6"].MergeCells = true;
+            exRange.Range["A6:C6"].Font.Italic = true;
+            exRange.Range["A6:C6"].HorizontalAlignment = COMExcel.XlHAlign.xlHAlignCenter;
+            exRange.Range["A6:C6"].Value = tblHoaDon.Rows[0][6];
+            ws.Name = "Hóa đơn nhập";
+            exApp.Visible = true;
+        }
+
+        private void btDong_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void btHuyHD_Click(object sender, EventArgs e)
+        {
+            string sql;
+            Double  SoLuongxoa, sl, slcon;
+            if ((MessageBox.Show("Bạn có chắc chắn muốn xóa không?", "Thông báo", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes))
+            {
+                sql = "select MaHang,SoLuong from tblChiTietHDBan where MaHDBan = N'" + textMaHD.Text + "'";
+                DataTable tblHang = QuanLyBanHang.getDatatable(sql);
+                for(int hang = 0; hang < tblHang.Rows.Count; hang++)
+                {
+                    slcon = Convert.ToDouble(QuanLyBanHang.getValues("select SoLuong from tblHang where MaHang = N'" + tblHang.Rows[hang][0]+"'"));
+                    SoLuongxoa = Convert.ToDouble(tblHang.Rows[hang][1]);
+                    sl = slcon + SoLuongxoa;
+                    sql = "UPDATE tblHang SET SoLuong = " + sl + " where MaHang = N'" + tblHang.Rows[hang][0]+"'";
+                    QuanLyBanHang.runSQL(sql);
+                }
+                sql = "DELETE tblChiTietHDBan WHERE MaHDBan = N'" + textMaHD.Text + "'";
+                QuanLyBanHang.runSQL(sql);
+                sql = "DELETE tblHDBan WHERE MaHDBan = N'" + textMaHD.Text + "'";
+                QuanLyBanHang.runSQL(sql);
+                loadDatagirdView();
+                reset();
+            }
         }
     }
 }

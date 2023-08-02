@@ -223,6 +223,12 @@ namespace DoAn_QuanLyCuaHang
         }
         public static string NumberToText(double inputNumber, bool suffix = true)
         {
+            if(inputNumber == 0)
+            {
+                return "0 dong";
+            }
+            else
+            {
             string[] unitNumbers = new string[] { "không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín" };
             string[] placeValues = new string[] { "", "nghìn", "triệu", "tỷ" };
             bool isNegative = false;
@@ -307,6 +313,7 @@ namespace DoAn_QuanLyCuaHang
             result = result.Trim();
             if (isNegative) result = "Âm " + result;
             return result + (suffix ? " đồng" : "");
+            }
         }
     }
 }

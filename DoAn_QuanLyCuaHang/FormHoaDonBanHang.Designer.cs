@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
+            this.comboBoxTimKiem = new System.Windows.Forms.ComboBox();
             this.btnTimKiem = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -75,7 +76,6 @@
             this.label18 = new System.Windows.Forms.Label();
             this.laChu = new System.Windows.Forms.Label();
             this.label16 = new System.Windows.Forms.Label();
-            this.comboBoxTimKiem = new System.Windows.Forms.ComboBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -96,6 +96,15 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(800, 49);
             this.panel1.TabIndex = 2;
+            // 
+            // comboBoxTimKiem
+            // 
+            this.comboBoxTimKiem.FormattingEnabled = true;
+            this.comboBoxTimKiem.Location = new System.Drawing.Point(99, 15);
+            this.comboBoxTimKiem.Name = "comboBoxTimKiem";
+            this.comboBoxTimKiem.Size = new System.Drawing.Size(159, 24);
+            this.comboBoxTimKiem.TabIndex = 3;
+            this.comboBoxTimKiem.DropDown += new System.EventHandler(this.comboBoxTimKiem_DropDown);
             // 
             // btnTimKiem
             // 
@@ -464,6 +473,7 @@
             this.btDong.TabIndex = 5;
             this.btDong.Text = "Đóng";
             this.btDong.UseVisualStyleBackColor = true;
+            this.btDong.Click += new System.EventHandler(this.btDong_Click);
             // 
             // btInHD
             // 
@@ -473,6 +483,7 @@
             this.btInHD.TabIndex = 4;
             this.btInHD.Text = "In hóa đơn";
             this.btInHD.UseVisualStyleBackColor = true;
+            this.btInHD.Click += new System.EventHandler(this.btInHD_Click);
             // 
             // btHuyHD
             // 
@@ -482,6 +493,7 @@
             this.btHuyHD.TabIndex = 3;
             this.btHuyHD.Text = "Hủy hóa đơn";
             this.btHuyHD.UseVisualStyleBackColor = true;
+            this.btHuyHD.Click += new System.EventHandler(this.btHuyHD_Click);
             // 
             // btLuuHD
             // 
@@ -536,15 +548,6 @@
             this.label16.Size = new System.Drawing.Size(153, 16);
             this.label16.TabIndex = 0;
             this.label16.Text = "Nháy đúp 1 dòng để xóa";
-            // 
-            // comboBoxTimKiem
-            // 
-            this.comboBoxTimKiem.FormattingEnabled = true;
-            this.comboBoxTimKiem.Location = new System.Drawing.Point(99, 15);
-            this.comboBoxTimKiem.Name = "comboBoxTimKiem";
-            this.comboBoxTimKiem.Size = new System.Drawing.Size(159, 24);
-            this.comboBoxTimKiem.TabIndex = 3;
-            this.comboBoxTimKiem.DropDown += new System.EventHandler(this.comboBoxTimKiem_DropDown);
             // 
             // FormHoaDonBanHang
             // 
